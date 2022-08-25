@@ -1,4 +1,9 @@
 # Databricks notebook source
+# MAGIC %md
+# MAGIC # Transform mydramalist data into relational format
+
+# COMMAND ----------
+
 # Set up access configuration through service principal
 service_credential = dbutils.secrets.get(scope="iscase-dbscope",key="ADLS_DATABRICKS_KEY")
 application_id = dbutils.secrets.get(scope="iscase-dbscope",key="iscase-aad-appid")
@@ -28,6 +33,11 @@ df = spark.sql("SELECT * FROM psa.mydramalist WHERE name IS NOT NULL")
 # COMMAND ----------
 
 from pyspark.sql import functions as F
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Create a reproducible identifier for movies, and fetch movie data 
 
 # COMMAND ----------
 
@@ -68,4 +78,81 @@ df_movies = df.select(
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ### Write movies data to delta table
+
+# COMMAND ----------
+
 df_movies.write.mode("overwrite").format("delta").saveAsTable("mydramalist.movies")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Fetch movie staff from dedicated string arrays 
+
+# COMMAND ----------
+
+df_directors = df.select(
+    F.col("movie_id"),
+    F.explode("director").alias("member")
+)
+
+df_directors = df_directors \
+    .withColumn("staff_id", F.md5("member")) \
+    .withColumn("staff_role", F.lit("director"))
+
+# COMMAND ----------
+
+df_screenwriters = df.select(
+    F.col("movie_id"),
+    F.explode("screenwriter").alias("member")
+)
+ 
+df_screenwriters = df_screenwriters \
+    .withColumn("staff_id", F.md5("member")) \
+    .withColumn("staff_role", F.lit("screenwriter"))
+
+# COMMAND ----------
+
+df_main_roles = df.select(
+    F.col("movie_id"),
+    F.explode("main_roles").alias("member")
+)
+ 
+df_main_roles = df_main_roles \
+    .withColumn("staff_id", F.md5("member")) \
+    .withColumn("staff_role", F.lit("main role"))
+
+# COMMAND ----------
+
+df_guest_roles = df.select(
+    F.col("movie_id"),
+    F.explode("guest_roles").alias("member")
+)
+ 
+df_guest_roles = df_guest_roles \
+    .withColumn("staff_id", F.md5("member")) \
+    .withColumn("staff_role", F.lit("guest role"))
+
+# COMMAND ----------
+
+# Concatenate staff DataFrames
+df_staff = df_directors \
+    .union(df_screenwriters) \
+    .union(df_main_roles) \
+    .union(df_guest_roles) \
+    .dropna()
+
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Write staff data into a delta table
+
+# COMMAND ----------
+
+df_staff.write.mode("overwrite").format("delta").saveAsTable("mydramalist.staff")
+
+# COMMAND ----------
+
+display(df)
