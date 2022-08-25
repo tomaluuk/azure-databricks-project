@@ -14,3 +14,8 @@ spark.conf.set("fs.azure.account.oauth2.client.endpoint.iscasedata.dfs.core.wind
 
 # MAGIC %sql
 # MAGIC CREATE DATABASE IF NOT EXISTS movies
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC CREATE SCHEMA IF NOT EXISTS psa

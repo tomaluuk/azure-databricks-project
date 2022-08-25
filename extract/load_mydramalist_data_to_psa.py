@@ -27,9 +27,4 @@ df = spark.read \
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC CREATE SCHEMA IF NOT EXISTS psa
-
-# COMMAND ----------
-
 df.write.mode("overwrite").format("delta").saveAsTable("psa.mydramalist")
