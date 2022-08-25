@@ -12,10 +12,6 @@ spark.conf.set("fs.azure.account.oauth2.client.endpoint.iscasedata.dfs.core.wind
 
 # COMMAND ----------
 
-#input_files = dbutils.fs.ls("abfss://dramas@iscasedata.dfs.core.windows.net/stage/mydramalist")
-
-# COMMAND ----------
-
 file = "abfss://dramas@iscasedata.dfs.core.windows.net/stage/mydramalist/top_5000_mydramalist.json"
 
 # COMMAND ----------
