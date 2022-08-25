@@ -155,4 +155,56 @@ df_staff.write.mode("overwrite").format("delta").saveAsTable("mydramalist.staff"
 
 # COMMAND ----------
 
-display(df)
+# MAGIC %md
+# MAGIC ## Fetch tags data
+
+# COMMAND ----------
+
+df_tags = df.select(
+    F.col("movie_id"),
+    F.explode("tags").alias("tag")
+)
+
+# COMMAND ----------
+
+df_tags = df_tags.withColumn(
+    "tag_id",
+    F.md5("tag")
+).dropna()
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Write tags data to delta table
+
+# COMMAND ----------
+
+df_tags.write.mode("overwrite").format("delta").saveAsTable("mydramalist.tags")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Fetch genres data
+
+# COMMAND ----------
+
+df_genres = df.select(
+    F.col("movie_id"),
+    F.explode("genres").alias("genre")
+)
+
+# COMMAND ----------
+
+df_genres = df_genres.withColumn(
+    "genre_id",
+    F.md5("genre")
+).dropna()
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ### Write genres data to a delta table
+
+# COMMAND ----------
+
+df_genres.write.mode("overwrite").format("delta").saveAsTable("mydramalist.genres")
