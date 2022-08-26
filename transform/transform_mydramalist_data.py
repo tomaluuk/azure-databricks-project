@@ -22,11 +22,6 @@ spark.conf.set("fs.azure.account.oauth2.client.endpoint.iscasedata.dfs.core.wind
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC --DROP SCHEMA IF EXISTS mydramalist CASCADE
-
-# COMMAND ----------
-
 # Read mydramalist data into a Spark DataFrame and drop nulls
 df = spark.sql("SELECT * FROM psa.mydramalist WHERE name IS NOT NULL")
 
@@ -74,7 +69,7 @@ df_movies = df.select(
     F.col("ranking"),
     F.col("ratings"),
     F.col("synopsis"),
-)
+).drop_duplicates()
 
 # COMMAND ----------
 
@@ -83,7 +78,7 @@ df_movies = df.select(
 
 # COMMAND ----------
 
-df_movies.write.mode("overwrite").format("delta").saveAsTable("mydramalist.movies")
+df_movies.write.format("delta").mode("overwrite").option("mergeSchema", "true").saveAsTable("mydramalist.movies")
 
 # COMMAND ----------
 
@@ -141,7 +136,8 @@ df_staff = df_directors \
     .union(df_screenwriters) \
     .union(df_main_roles) \
     .union(df_guest_roles) \
-    .dropna()
+    .dropna() \
+    .drop_duplicates()
 
 
 # COMMAND ----------
@@ -151,7 +147,7 @@ df_staff = df_directors \
 
 # COMMAND ----------
 
-df_staff.write.mode("overwrite").format("delta").saveAsTable("mydramalist.staff")
+df_staff.write.format("delta").mode("overwrite").option("mergeSchema", "true").saveAsTable("mydramalist.staff")
 
 # COMMAND ----------
 
@@ -170,7 +166,7 @@ df_tags = df.select(
 df_tags = df_tags.withColumn(
     "tag_id",
     F.md5("tag")
-).dropna()
+).dropna().drop_duplicates()
 
 # COMMAND ----------
 
@@ -179,7 +175,7 @@ df_tags = df_tags.withColumn(
 
 # COMMAND ----------
 
-df_tags.write.mode("overwrite").format("delta").saveAsTable("mydramalist.tags")
+df_tags.write.format("delta").mode("overwrite").option("mergeSchema", "true").saveAsTable("mydramalist.tags")
 
 # COMMAND ----------
 
@@ -198,7 +194,7 @@ df_genres = df.select(
 df_genres = df_genres.withColumn(
     "genre_id",
     F.md5("genre")
-).dropna()
+).dropna().drop_duplicates()
 
 # COMMAND ----------
 
@@ -207,4 +203,4 @@ df_genres = df_genres.withColumn(
 
 # COMMAND ----------
 
-df_genres.write.mode("overwrite").format("delta").saveAsTable("mydramalist.genres")
+df_genres.write.format("delta").mode("overwrite").option("mergeSchema", "true").saveAsTable("mydramalist.genres")

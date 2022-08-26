@@ -23,4 +23,4 @@ df = spark.read \
 
 # COMMAND ----------
 
-df.write.mode("overwrite").format("delta").saveAsTable("psa.mydramalist")
+df.write.format("delta").mode("overwrite").option("mergeSchema", "true").saveAsTable("psa.mydramalist")
